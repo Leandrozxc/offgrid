@@ -1,0 +1,94 @@
+@page "/bag"
+@implements IDisposable
+@inject CartService Cart
+
+<PageTitle>Bag | OFFGRID</PageTitle>
+
+<section class="bg-cream">
+    <div class="mx-auto max-w-[1400px] px-5 py-14 lg:px-10 lg:py-20">
+        <h1 class="animate-rise text-5xl font-black uppercase tracking-tight sm:text-6xl">Your bag</h1>
+
+        @if (Cart.Items.Count == 0)
+        {
+            <div class="mt-12 flex min-h-[35vh] flex-col items-start">
+                <p class="text-lg text-ink/70">Nothing in here yet.</p>
+                <a href="/shop" class="btn btn-dark mt-6">Start shopping</a>
+            </div>
+        }
+        else
+        {
+            <div class="mt-12 grid gap-12 lg:grid-cols-12">
+                <ul class="divide-y divide-ink/15 border-y border-ink/15 lg:col-span-8">
+                    @foreach (var item in Cart.Items.ToList())
+                    {
+                        <li @key="item.Key" class="@(removing == item.Key ? "line-leave" : "") flex gap-5 py-6">
+                            <a href="/product/@item.Product.Id" class="w-24 shrink-0 sm:w-32">
+                                <ProductImage Product="item.Product" ColorName="@item.Color" />
+                            </a>
+                            <div class="flex flex-1 flex-col justify-between">
+                                <div class="flex justify-between gap-4">
+                                    <div>
+                                        <h2 class="text-sm font-semibold uppercase tracking-wide">@item.Product.Name</h2>
+                                        <p class="mt-1 text-xs uppercase tracking-[0.14em] text-ink/60">Size @item.Size · @item.Color</p>
+                                        <p class="mt-1 text-sm text-ink/70">@item.Product.PriceText each</p>
+                                    </div>
+                                    <p class="text-sm font-medium">@Money.Peso(item.LineTotal)</p>
+                                </div>
+                                <div class="mt-4 flex items-center justify-between">
+                                    <div class="inline-flex items-center border border-ink/30">
+                                        <button type="button" class="h-10 w-10 text-lg disabled:opacity-30"
+                                                aria-label="Decrease quantity of @item.Product.Name"
+                                                disabled="@(item.Quantity <= 1)"
+                                                @onclick="() => Cart.SetQuantity(item, item.Quantity - 1)">−</button>
+                                        <span class="w-10 text-center text-sm" aria-live="polite">@item.Quantity</span>
+                                        <button type="button" class="h-10 w-10 text-lg disabled:opacity-30"
+                                                aria-label="Increase quantity of @item.Product.Name"
+                                                disabled="@(item.Quantity >= item.Product.Stock)"
+                                                @onclick="() => Cart.SetQuantity(item, item.Quantity + 1)">+</button>
+                                    </div>
+                                    <button type="button" class="text-xs font-semibold uppercase tracking-[0.18em] underline underline-offset-4"
+                                            aria-label="Remove @item.Product.Name" @onclick="() => RemoveAsync(item)">Remove</button>
+                                </div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+
+                <aside class="lg:col-span-4">
+                    <div class="border border-ink/15 bg-white p-7 lg:sticky lg:top-28">
+                        <h2 class="label">Order summary</h2>
+                        <dl class="mt-6 space-y-3 text-sm">
+                            <div class="flex justify-between"><dt>Subtotal</dt><dd>@Money.Peso(Cart.Subtotal)</dd></div>
+                            <div class="flex justify-between"><dt>Shipping</dt><dd>@(Cart.Shipping == 0 ? "Free" : Money.Peso(Cart.Shipping))</dd></div>
+                            <div class="flex justify-between border-t border-ink/15 pt-4 text-base font-semibold"><dt>Total</dt><dd>@Money.Peso(Cart.Total)</dd></div>
+                        </dl>
+                        @if (Cart.Shipping > 0)
+                        {
+                            <p class="mt-4 text-xs text-ink/60">Add @Money.Peso(CartService.FreeShippingThreshold - Cart.Subtotal) more for free shipping.</p>
+                        }
+                        <a href="/checkout" class="btn btn-dark mt-6 w-full">Checkout</a>
+                        <a href="/shop" class="mt-4 block text-center text-xs font-semibold uppercase tracking-[0.18em] underline underline-offset-4">Continue shopping</a>
+                    </div>
+                </aside>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    string? removing;
+
+    protected override void OnInitialized() => Cart.Changed += OnChanged;
+
+    void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    async Task RemoveAsync(CartItem item)
+    {
+        removing = item.Key;
+        await Task.Delay(250);   // lets the leave animation play
+        removing = null;
+        Cart.Remove(item);
+    }
+
+    public void Dispose() => Cart.Changed -= OnChanged;
+}
