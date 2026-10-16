@@ -1,0 +1,28 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+
+<div class="flex min-h-screen flex-col">
+    <SiteHeader />
+    <main class="flex-1">@Body</main>
+    <SiteFooter />
+</div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        Nav.LocationChanged += OnLocationChanged;
+        await JS.InvokeVoidAsync("offgrid.ready");
+    }
+
+    async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        try { await JS.InvokeVoidAsync("offgrid.scrollTop"); }
+        catch (JSDisconnectedException) { }
+        catch (InvalidOperationException) { }
+    }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}
