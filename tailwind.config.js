@@ -4,10 +4,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: "#111111",
-        cream: "#F5F1E8",
-        concrete: "#858585",
-        fog: "#E8E6E1",
+        ink: "#000000",       // Pure black
+        cream: "#FFFFFF",     // Mapped to pure white globally
+        fog: "#F5F5F5",       // Neutral studio light gray for media cards & section contrast
+        concrete: "#737373",  // Neutral industrial mid-gray
       },
       fontFamily: {
         sans: ['"Helvetica Neue"', "Helvetica", "Arial", "ui-sans-serif", "system-ui", "sans-serif"],

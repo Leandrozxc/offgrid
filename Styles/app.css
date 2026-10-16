@@ -4,7 +4,7 @@
 
 @layer base {
     body {
-        @apply bg-cream font-sans text-ink antialiased selection:bg-ink selection:text-white;
+        @apply bg-white font-sans text-ink antialiased selection:bg-ink selection:text-white;
     }
 
     :focus-visible {
@@ -12,22 +12,22 @@
         outline-offset: 3px;
     }
 
-    /* Minimal scrollbar */
+    /* Minimal monochrome scrollbar */
     ::-webkit-scrollbar {
         width: 6px;
         height: 6px;
     }
 
     ::-webkit-scrollbar-track {
-        background: #F5F1E8;
+        background: #FFFFFF;
     }
 
     ::-webkit-scrollbar-thumb {
-        background: #858585;
+        background: #D4D4D8;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background: #111111;
+        background: #000000;
     }
 }
 
@@ -57,7 +57,7 @@
     }
 
     .field {
-        @apply w-full border border-ink/25 bg-transparent px-4 py-3 text-sm placeholder:text-ink/40 transition-colors focus:border-ink focus:outline-none;
+        @apply w-full border border-ink/20 bg-transparent px-4 py-3 text-sm placeholder:text-ink/40 transition-colors focus:border-ink focus:outline-none;
     }
 
     .field.invalid {
