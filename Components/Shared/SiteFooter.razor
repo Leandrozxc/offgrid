@@ -1,0 +1,33 @@
+<footer class="bg-ink text-white">
+    <div class="mx-auto max-w-[1400px] px-5 py-16 lg:px-10">
+        <div class="grid gap-12 md:grid-cols-12">
+            <div class="md:col-span-5">
+                <a href="/" class="text-2xl font-black tracking-[0.3em]">OFFGRID</a>
+                <p class="mt-4 max-w-sm text-sm text-white/70">
+                    Independent streetwear for those who move differently. Outside the Ordinary.
+                </p>
+            </div>
+            <nav class="md:col-span-3" aria-label="Shop">
+                <h2 class="label text-white/60">Shop</h2>
+                <ul class="mt-4 space-y-3 text-sm">
+                    <li><a href="/shop" class="transition-colors hover:text-white/60">All products</a></li>
+                    @foreach (var c in ProductCatalog.Categories)
+                    {
+                        <li><a href="@(ProductCatalog.CategoryUrl(c))" class="transition-colors hover:text-white/60">@c</a></li>
+                    }
+                </ul>
+            </nav>
+            <div class="md:col-span-4">
+                <h2 class="label text-white/60">Contact</h2>
+                <ul class="mt-4 space-y-3 text-sm text-white/80">
+                    <li>hello@offgrid.example (placeholder)</li>
+                    <li>Instagram (placeholder)</li>
+                    <li>TikTok (placeholder)</li>
+                </ul>
+            </div>
+        </div>
+        <div class="mt-16 border-t border-white/15 pt-6 text-xs text-white/60">
+            © @DateTime.Now.Year OFFGRID. A fictional brand created for an academic project.
+        </div>
+    </div>
+</footer>

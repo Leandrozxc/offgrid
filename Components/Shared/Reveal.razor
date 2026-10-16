@@ -1,0 +1,29 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<div @ref="el" class="reveal @Class" style="@Style">@ChildContent</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public int Delay { get; set; }
+
+    ElementReference el;
+    bool observed;
+
+    string? Style => Delay > 0 ? $"transition-delay:{Delay}ms" : null;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await JS.InvokeVoidAsync("offgrid.observe", el);
+        observed = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!observed) return;
+        try { await JS.InvokeVoidAsync("offgrid.unobserve", el); }
+        catch (JSDisconnectedException) { }
+    }
+}

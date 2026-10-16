@@ -1,0 +1,117 @@
+@implements IDisposable
+@inject CartService Cart
+@inject NavigationManager Nav
+
+<a href="/shop?sort=new"
+   class="block bg-ink py-2.5 text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-white transition-colors hover:text-white/70">
+    The latest drop is here — explore the collection
+</a>
+
+<header class="sticky top-0 z-40 border-b border-ink/10 bg-cream">
+    <div class="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-5 lg:px-10">
+        <div class="flex flex-1 items-center">
+            <button type="button" class="-ml-2 p-2 lg:hidden" @onclick="ToggleMenu"
+                    aria-label="@(menuOpen ? "Close menu" : "Open menu")"
+                    aria-expanded="@(menuOpen ? "true" : "false")" aria-controls="mobile-menu">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                    @if (menuOpen) { <path d="M6 6l12 12M18 6 6 18" /> } else { <path d="M4 8h16M4 16h16" /> }
+                </svg>
+            </button>
+            <nav class="hidden gap-9 lg:flex" aria-label="Primary">
+                <NavLink href="" class="nav-link" ActiveClass="is-active" Match="NavLinkMatch.All">Home</NavLink>
+                <NavLink href="shop" class="nav-link" ActiveClass="is-active">Shop</NavLink>
+                <a href="/shop?sort=new" class="nav-link">New Arrivals</a>
+            </nav>
+        </div>
+
+        <a href="/" class="text-xl font-black tracking-[0.3em]" aria-label="OFFGRID home">OFFGRID</a>
+
+        <div class="flex flex-1 items-center justify-end gap-1">
+            <button type="button" class="p-2" @onclick="ToggleSearch" aria-label="Search products"
+                    aria-expanded="@(searchOpen ? "true" : "false")">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
+                </svg>
+            </button>
+            <a href="/bag" class="relative p-2" aria-label="Shopping bag, @Cart.Count items">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M6 7h12l1 13H5L6 7Z" /><path d="M9 7a3 3 0 0 1 6 0" />
+                </svg>
+                @if (Cart.Count > 0)
+                {
+                    <span @key="Cart.Count"
+                          class="@(bump ? "bag-bump" : "") absolute right-0 top-0.5 flex h-4 min-w-4 items-center justify-center bg-ink px-1 text-[10px] font-bold text-white">
+                        @Cart.Count
+                    </span>
+                }
+            </a>
+        </div>
+    </div>
+
+    @if (searchOpen)
+    {
+        <div class="animate-fade border-t border-ink/10 bg-cream">
+            <form @onsubmit="SubmitSearch" @onsubmit:preventDefault class="mx-auto flex max-w-[1400px] items-center gap-4 px-5 py-4 lg:px-10">
+                <label for="site-search" class="sr-only">Search products</label>
+                <input id="site-search" @ref="searchInput" @bind="term" @bind:event="oninput" @onkeydown="OnSearchKey"
+                       placeholder="Search tees, hoodies, caps" autocomplete="off"
+                       class="w-full bg-transparent text-lg placeholder:text-ink/40 focus:outline-none" />
+                <button type="submit" class="label shrink-0">Search</button>
+            </form>
+        </div>
+    }
+
+    <div id="mobile-menu"
+         class="@(menuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-2 opacity-0") absolute inset-x-0 top-full border-b border-ink/10 bg-cream transition-[opacity,transform,visibility] duration-300 lg:hidden">
+        <nav class="flex flex-col px-5 py-6" aria-label="Mobile">
+            <a href="/" class="border-b border-ink/10 py-4 text-2xl font-black uppercase tracking-tight">Home</a>
+            <a href="/shop" class="border-b border-ink/10 py-4 text-2xl font-black uppercase tracking-tight">Shop</a>
+            <a href="/shop?sort=new" class="py-4 text-2xl font-black uppercase tracking-tight">New Arrivals</a>
+        </nav>
+    </div>
+</header>
+
+@code {
+    bool menuOpen, searchOpen, bump, focusSearch;
+    string term = "";
+    ElementReference searchInput;
+
+    protected override void OnInitialized()
+    {
+        Cart.Changed += OnCartChanged;
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    void OnCartChanged() { bump = true; _ = InvokeAsync(StateHasChanged); }
+
+    void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        menuOpen = false;
+        searchOpen = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    void ToggleMenu() { menuOpen = !menuOpen; searchOpen = false; }
+
+    void ToggleSearch() { searchOpen = !searchOpen; focusSearch = searchOpen; menuOpen = false; }
+
+    void OnSearchKey(KeyboardEventArgs e) { if (e.Key == "Escape") searchOpen = false; }
+
+    void SubmitSearch()
+    {
+        var t = term.Trim();
+        searchOpen = false;
+        Nav.NavigateTo(t.Length == 0 ? "/shop" : $"/shop?q={Uri.EscapeDataString(t)}");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (focusSearch) { focusSearch = false; await searchInput.FocusAsync(); }
+    }
+
+    public void Dispose()
+    {
+        Cart.Changed -= OnCartChanged;
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+}
