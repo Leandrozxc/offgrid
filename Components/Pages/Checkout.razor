@@ -1,0 +1,129 @@
+@page "/checkout"
+@using System.ComponentModel.DataAnnotations
+@inject CartService Cart
+
+<PageTitle>Checkout | OFFGRID</PageTitle>
+
+<section class="bg-cream">
+    <div class="mx-auto max-w-[1400px] px-5 py-14 lg:px-10 lg:py-20">
+        @if (placed)
+        {
+            <div class="animate-rise flex min-h-[45vh] max-w-xl flex-col items-start justify-center">
+                <p class="label text-ink/60">Order @orderRef</p>
+                <h1 class="mt-3 text-5xl font-black uppercase tracking-tight">Order confirmed.</h1>
+                <p class="mt-4 text-ink/70">
+                    Thanks! A confirmation would go to @confirmedEmail. Total: @Money.Peso(confirmedTotal).
+                </p>
+                <p class="mt-2 text-sm text-ink/60">This is a simulated checkout. No payment was taken and no real order was placed.</p>
+                <a href="/shop" class="btn btn-dark mt-8">Continue shopping</a>
+            </div>
+        }
+        else if (Cart.Items.Count == 0)
+        {
+            <h1 class="text-5xl font-black uppercase tracking-tight">Checkout</h1>
+            <p class="mt-6 text-lg text-ink/70">Your bag is empty. Add something first.</p>
+            <a href="/shop" class="btn btn-dark mt-6">Back to shop</a>
+        }
+        else
+        {
+            <h1 class="animate-rise text-5xl font-black uppercase tracking-tight sm:text-6xl">Checkout</h1>
+            <div class="mt-12 grid gap-14 lg:grid-cols-12">
+                <EditForm Model="form" OnValidSubmit="PlaceOrder" class="space-y-6 lg:col-span-7" novalidate>
+                    <DataAnnotationsValidator />
+                    <h2 class="label">Shipping details</h2>
+
+                    <div>
+                        <label for="fullName" class="label">Full name</label>
+                        <InputText id="fullName" @bind-Value="form.FullName" class="field mt-2" autocomplete="name" />
+                        <ValidationMessage For="() => form.FullName" class="mt-1.5 text-sm text-red-700" />
+                    </div>
+                    <div>
+                        <label for="email" class="label">Email address</label>
+                        <InputText id="email" @bind-Value="form.Email" class="field mt-2" autocomplete="email" />
+                        <ValidationMessage For="() => form.Email" class="mt-1.5 text-sm text-red-700" />
+                    </div>
+                    <div>
+                        <label for="address" class="label">Shipping address</label>
+                        <InputText id="address" @bind-Value="form.Address" class="field mt-2" autocomplete="street-address" />
+                        <ValidationMessage For="() => form.Address" class="mt-1.5 text-sm text-red-700" />
+                    </div>
+                    <div class="grid gap-6 sm:grid-cols-2">
+                        <div>
+                            <label for="city" class="label">City</label>
+                            <InputText id="city" @bind-Value="form.City" class="field mt-2" autocomplete="address-level2" />
+                            <ValidationMessage For="() => form.City" class="mt-1.5 text-sm text-red-700" />
+                        </div>
+                        <div>
+                            <label for="postal" class="label">Postal code</label>
+                            <InputText id="postal" @bind-Value="form.PostalCode" class="field mt-2" inputmode="numeric" autocomplete="postal-code" />
+                            <ValidationMessage For="() => form.PostalCode" class="mt-1.5 text-sm text-red-700" />
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-ink/60">Payment: cash on delivery (simulated). No payment details are collected.</p>
+                    <button type="submit" class="btn btn-dark w-full">Place order</button>
+                </EditForm>
+
+                <aside class="lg:col-span-5">
+                    <div class="border border-ink/15 bg-white p-7">
+                        <h2 class="label">Order summary</h2>
+                        <ul class="mt-6 divide-y divide-ink/10">
+                            @foreach (var item in Cart.Items)
+                            {
+                                <li class="flex items-center gap-4 py-4">
+                                    <div class="w-16 shrink-0"><ProductImage Product="item.Product" ColorName="@item.Color" /></div>
+                                    <div class="flex-1 text-sm">
+                                        <p class="font-semibold uppercase tracking-wide">@item.Product.Name</p>
+                                        <p class="text-xs text-ink/60">Size @item.Size · @item.Color · Qty @item.Quantity</p>
+                                    </div>
+                                    <p class="text-sm">@Money.Peso(item.LineTotal)</p>
+                                </li>
+                            }
+                        </ul>
+                        <dl class="mt-4 space-y-3 border-t border-ink/15 pt-4 text-sm">
+                            <div class="flex justify-between"><dt>Subtotal</dt><dd>@Money.Peso(Cart.Subtotal)</dd></div>
+                            <div class="flex justify-between"><dt>Shipping</dt><dd>@(Cart.Shipping == 0 ? "Free" : Money.Peso(Cart.Shipping))</dd></div>
+                            <div class="flex justify-between text-base font-semibold"><dt>Total</dt><dd>@Money.Peso(Cart.Total)</dd></div>
+                        </dl>
+                    </div>
+                </aside>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    readonly CheckoutForm form = new();
+    bool placed;
+    string orderRef = "", confirmedEmail = "";
+    decimal confirmedTotal;
+
+    void PlaceOrder()
+    {
+        orderRef = $"OG-{Random.Shared.Next(100000, 999999)}";
+        confirmedEmail = form.Email ?? "";
+        confirmedTotal = Cart.Total;   // read before clearing
+        Cart.Clear();
+        placed = true;
+    }
+
+    class CheckoutForm
+    {
+        [Required(ErrorMessage = "Enter your full name.")]
+        public string? FullName { get; set; }
+
+        [Required(ErrorMessage = "Enter your email address.")]
+        [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", ErrorMessage = "Enter a valid email address.")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "Enter your shipping address.")]
+        public string? Address { get; set; }
+
+        [Required(ErrorMessage = "Enter your city.")]
+        public string? City { get; set; }
+
+        [Required(ErrorMessage = "Enter your postal code.")]
+        [RegularExpression(@"^\d{4}$", ErrorMessage = "Postal code must be 4 digits.")]
+        public string? PostalCode { get; set; }
+    }
+}
