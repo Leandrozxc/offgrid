@@ -3,87 +3,171 @@
 
 <PageTitle>Shop | OFFGRID</PageTitle>
 
-<section class="bg-cream">
-    <div class="mx-auto max-w-[1400px] px-5 pb-8 pt-14 lg:px-10 lg:pt-20">
-        <p class="label animate-rise text-ink/60">The Collection</p>
-        <h1 class="animate-rise mt-3 text-5xl font-black uppercase tracking-tight delay-1 sm:text-7xl">Shop</h1>
-        <p class="animate-rise mt-4 max-w-xl text-base text-ink/70 delay-2">
-            Oversized fits, expressive graphics, and everyday essentials for the ones who move differently.
-        </p>
+<section class="min-h-screen bg-cream">
+    @* Page Banner *@
+    <div class="border-b border-ink/15">
+        <div class="mx-auto max-w-[1400px] px-6 pb-10 pt-16 lg:px-12 lg:pt-20">
+            <p class="label text-ink/50">Archive Catalog</p>
+            <h1 class="mt-2 text-5xl font-black uppercase tracking-tight sm:text-7xl">Shop</h1>
+            <p class="mt-4 max-w-xl text-sm leading-relaxed text-ink/70">
+                Oversized silhouettes, drop shoulders, and dense heavyweight textiles designed outside the trend cycle.
+            </p>
+        </div>
     </div>
 
-    <div class="mx-auto max-w-[1400px] px-5 pb-24 lg:px-10">
-        <div class="flex flex-wrap items-center justify-between gap-4 border-y border-ink/15 py-4">
-            <p class="text-sm" aria-live="polite">
-                <span class="font-semibold">@results.Count</span> @(results.Count == 1 ? "product" : "products")
-                @if (!string.IsNullOrWhiteSpace(search))
-                {
-                    <button type="button" class="ml-3 border border-ink/30 px-2.5 py-1 text-xs uppercase tracking-wider hover:border-ink"
-                            @onclick="() => search = null" aria-label="Clear search @search">Search: @search ×</button>
-                }
-            </p>
+    @* Controls Bar *@
+    <div class="sticky top-0 z-20 border-b border-ink/15 bg-cream/95 backdrop-blur-sm">
+        <div class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-3.5 lg:px-12">
             <div class="flex items-center gap-3">
-                <button type="button" class="btn btn-outline !py-2.5 lg:hidden" @onclick="() => filtersOpen = !filtersOpen"
-                        aria-expanded="@(filtersOpen ? "true" : "false")">Filters</button>
-                <label for="sort" class="sr-only">Sort by</label>
-                <select id="sort" @bind="sort" class="field !w-auto !py-2.5">
-                    <option value="featured">Featured</option>
-                    <option value="new">Newest</option>
-                    <option value="price-asc">Price: low to high</option>
-                    <option value="price-desc">Price: high to low</option>
-                </select>
+                <p class="text-xs font-semibold uppercase tracking-wider" aria-live="polite">
+                    <span class="font-black">@results.Count</span> @(results.Count == 1 ? "Item" : "Items")
+                </p>
+
+                @if (HasFilters)
+                {
+                    <button type="button"
+                            class="ml-2 text-[11px] font-bold uppercase tracking-widest text-ink underline underline-offset-4 hover:opacity-60"
+                            @onclick="ClearFilters">
+                        Reset Filters
+                    </button>
+                }
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="button"
+                        class="btn btn-outline !px-4 !py-2 lg:hidden"
+                        @onclick="() => filtersOpen = !filtersOpen"
+                        aria-expanded="@(filtersOpen ? "true" : "false")">
+                    Filters @(ActiveFilterCount > 0 ? $"({ActiveFilterCount})" : "")
+                </button>
+
+                <div class="flex items-center gap-2">
+                    <label for="sort" class="label hidden text-ink/60 sm:block">Sort</label>
+                    <select id="sort" @bind="sort" class="field !w-auto !py-1.5 text-xs font-semibold uppercase tracking-wider">
+                        <option value="featured">Featured</option>
+                        <option value="new">Newest Drop</option>
+                        <option value="price-asc">Price: Low → High</option>
+                        <option value="price-desc">Price: High → Low</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div class="mt-10 grid gap-10 lg:grid-cols-[14rem_1fr]">
-            <aside class="@(filtersOpen ? "block" : "hidden") space-y-8 lg:block" aria-label="Filters">
+        @* Active Filter Pills Bar *@
+        @if (HasFilters)
+        {
+            <div class="mx-auto flex max-w-[1400px] flex-wrap items-center gap-2 px-6 pb-3 lg:px-12">
+                @if (category is not null)
+                {
+                    <button type="button" class="inline-flex items-center gap-1.5 border border-ink bg-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
+                            @onclick="() => category = null">
+                        <span>Category: @category</span>
+                        <span class="text-xs">×</span>
+                    </button>
+                }
+                @if (size is not null)
+                {
+                    <button type="button" class="inline-flex items-center gap-1.5 border border-ink bg-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
+                            @onclick="() => size = null">
+                        <span>Size: @size</span>
+                        <span class="text-xs">×</span>
+                    </button>
+                }
+                @if (color is not null)
+                {
+                    <button type="button" class="inline-flex items-center gap-1.5 border border-ink bg-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
+                            @onclick="() => color = null">
+                        <span>Color: @color</span>
+                        <span class="text-xs">×</span>
+                    </button>
+                }
+                @if (!string.IsNullOrWhiteSpace(search))
+                {
+                    <button type="button" class="inline-flex items-center gap-1.5 border border-ink bg-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
+                            @onclick="() => search = null">
+                        <span>Search: @search</span>
+                        <span class="text-xs">×</span>
+                    </button>
+                }
+            </div>
+        }
+    </div>
+
+    @* Catalog Grid *@
+    <div class="mx-auto max-w-[1400px] px-6 py-12 lg:px-12">
+        <div class="grid gap-12 lg:grid-cols-[15rem_1fr]">
+            @* Sidebar Filters *@
+            <aside class="@(filtersOpen ? "block" : "hidden") space-y-8 lg:sticky lg:top-28 lg:block lg:self-start" aria-label="Filters">
                 <div>
-                    <h2 class="label">Category</h2>
-                    <div class="mt-3 flex flex-wrap gap-2">
-                        <button type="button" class="@ChipBase @Chip(category is null)" aria-pressed="@Pressed(category is null)" @onclick="() => category = null">All</button>
+                    <h2 class="label border-b border-ink/15 pb-2 text-ink">Categories</h2>
+                    <div class="mt-3 flex flex-col gap-1">
+                        <button type="button"
+                                class="flex items-center justify-between py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-ink @CategoryClass(category is null)"
+                                @onclick="() => category = null">
+                            <span>All Collections</span>
+                            <span>@Catalog.All.Count</span>
+                        </button>
                         @foreach (var c in ProductCatalog.Categories)
                         {
-                            <button type="button" class="@ChipBase @Chip(category == c)" aria-pressed="@Pressed(category == c)" @onclick="() => category = c">@c</button>
-                        }
-                    </div>
-                </div>
-                <div>
-                    <h2 class="label">Size</h2>
-                    <div class="mt-3 flex flex-wrap gap-2">
-                        @foreach (var s in ProductCatalog.SizeOrder)
-                        {
-                            <button type="button" class="@ChipBase @Chip(size == s)" aria-pressed="@Pressed(size == s)" @onclick="() => size = size == s ? null : s">@s</button>
-                        }
-                    </div>
-                </div>
-                <div>
-                    <h2 class="label">Color</h2>
-                    <div class="mt-3 flex flex-wrap gap-2">
-                        @foreach (var c in Catalog.AllColors())
-                        {
-                            <button type="button" class="@ChipBase flex items-center gap-2 @Chip(color == c.Name)" aria-pressed="@Pressed(color == c.Name)"
-                                    @onclick="() => color = color == c.Name ? null : c.Name">
-                                <span class="h-3 w-3 rounded-full border border-ink/30" style="background-color:@c.Hex"></span>@c.Name
+                            var count = Catalog.All.Count(p => p.Category == c);
+                            <button type="button"
+                                    class="flex items-center justify-between py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-ink @CategoryClass(category == c)"
+                                    @onclick="() => category = c">
+                                <span>@c</span>
+                                <span>@count</span>
                             </button>
                         }
                     </div>
                 </div>
-                <button type="button" class="text-xs font-semibold uppercase tracking-[0.18em] underline underline-offset-4 disabled:opacity-40"
-                        disabled="@(!HasFilters)" @onclick="ClearFilters">Clear filters</button>
+
+                <div>
+                    <h2 class="label border-b border-ink/15 pb-2 text-ink">Sizes</h2>
+                    <div class="mt-3 grid grid-cols-4 gap-1.5">
+                        @foreach (var s in ProductCatalog.SizeOrder)
+                        {
+                            var active = size == s;
+                            <button type="button"
+                                    class="border py-2 text-xs font-bold uppercase tracking-wider transition-all @SizeClass(active)"
+                                    aria-pressed="@(active ? "true" : "false")"
+                                    @onclick="() => size = size == s ? null : s">
+                                @s
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="label border-b border-ink/15 pb-2 text-ink">Colors</h2>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        @foreach (var c in Catalog.AllColors())
+                        {
+                            var active = string.Equals(color, c.Name, StringComparison.OrdinalIgnoreCase);
+                            <button type="button"
+                                    class="inline-flex items-center gap-2 border px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider transition-all @ColorClass(active)"
+                                    aria-pressed="@(active ? "true" : "false")"
+                                    @onclick="() => color = active ? null : c.Name">
+                                <span class="h-3 w-3 shrink-0 rounded-full border border-ink/30" style="background-color:@c.Hex"></span>
+                                <span>@c.Name</span>
+                            </button>
+                        }
+                    </div>
+                </div>
             </aside>
 
+            @* Products Content *@
             <div>
                 @if (results.Count == 0)
                 {
-                    <div class="flex min-h-[40vh] flex-col items-start justify-center">
-                        <h2 class="text-3xl font-black uppercase tracking-tight">No pieces match.</h2>
-                        <p class="mt-3 text-ink/70">Try removing a filter or two.</p>
-                        <button type="button" class="btn btn-dark mt-6" @onclick="ClearFilters">Clear filters</button>
+                    <div class="flex min-h-[45vh] flex-col items-center justify-center border border-dashed border-ink/30 p-12 text-center">
+                        <span class="font-mono text-xs uppercase tracking-widest text-ink/40">QUERY RETURNED 0 RESULTS</span>
+                        <h2 class="mt-3 text-3xl font-black uppercase tracking-tight">No silhouettes match.</h2>
+                        <p class="mt-2 text-sm text-ink/60">Try clearing active category or color filters.</p>
+                        <button type="button" class="btn btn-dark mt-6" @onclick="ClearFilters">Clear all filters</button>
                     </div>
                 }
                 else
                 {
-                    <div @key="GridKey" class="animate-fade grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:gap-x-6">
+                    <div @key="GridKey" class="animate-fade grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3">
                         @foreach (var p in results)
                         {
                             <ProductCard Product="p" ColorName="@color" @key="p.Id" />
@@ -100,19 +184,19 @@
     [SupplyParameterFromQuery(Name = "sort")] public string? SortQuery { get; set; }
     [SupplyParameterFromQuery(Name = "q")] public string? SearchQuery { get; set; }
 
-    const string ChipBase = "border px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition-colors";
-
     string? category, size, color, search, appliedKey;
     string sort = "featured";
     bool filtersOpen;
 
-    static string Chip(bool on) => on ? "border-ink bg-ink text-white" : "border-ink/30 hover:border-ink";
-    static string Pressed(bool on) => on ? "true" : "false";
-
     bool HasFilters => category is not null || size is not null || color is not null || !string.IsNullOrWhiteSpace(search);
+    int ActiveFilterCount => (category is not null ? 1 : 0) + (size is not null ? 1 : 0) + (color is not null ? 1 : 0) + (!string.IsNullOrWhiteSpace(search) ? 1 : 0);
     string GridKey => $"{category}|{size}|{color}|{sort}|{search}";
 
     List<Product> results => Filtered().ToList();
+
+    static string CategoryClass(bool on) => on ? "text-ink font-bold underline underline-offset-4" : "text-ink/60";
+    static string SizeClass(bool on) => on ? "border-ink bg-ink text-white" : "border-ink/20 hover:border-ink";
+    static string ColorClass(bool on) => on ? "border-ink bg-ink text-white ring-1 ring-ink ring-offset-1" : "border-ink/20 hover:border-ink";
 
     protected override void OnParametersSet()
     {
@@ -127,14 +211,20 @@
         color = null;
     }
 
-    void ClearFilters() { category = size = color = search = null; }
+    void ClearFilters()
+    {
+        category = null;
+        size = null;
+        color = null;
+        search = null;
+    }
 
     IEnumerable<Product> Filtered()
     {
         var q = Catalog.All.AsEnumerable();
         if (category is not null) q = q.Where(p => p.Category == category);
         if (size is not null) q = q.Where(p => p.Sizes.Contains(size));
-        if (color is not null) q = q.Where(p => p.Colors.Any(c => c.Name == color));
+        if (color is not null) q = q.Where(p => p.Colors.Any(c => string.Equals(c.Name, color, StringComparison.OrdinalIgnoreCase)));
         if (!string.IsNullOrWhiteSpace(search))
             q = q.Where(p => p.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
                           || p.Category.Contains(search, StringComparison.OrdinalIgnoreCase));

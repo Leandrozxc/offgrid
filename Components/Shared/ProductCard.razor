@@ -1,27 +1,77 @@
-<a href="/product/@Product.Id" class="group block">
-    <div class="relative">
-        <ProductImage Product="Product" ColorName="@ColorName" HoverSwap="true" />
-        @if (Product.Stock == 0)
-        {
-            <span class="label absolute left-3 top-3 bg-white px-2.5 py-1 text-ink">Sold out</span>
-        }
-        else if (Product.Badge is not null)
-        {
-            <span class="label absolute left-3 top-3 bg-ink px-2.5 py-1 text-white">@Product.Badge</span>
-        }
-    </div>
-    <div class="mt-4 flex items-start justify-between gap-4">
-        <div>
-            <h3 class="text-sm font-semibold uppercase tracking-wide">@Product.Name</h3>
-            <p class="mt-1 text-xs uppercase tracking-[0.18em] text-ink/60">
-                @Product.Category · @Product.Colors.Length @(Product.Colors.Length == 1 ? "color" : "colors")
-            </p>
+<div class="group relative flex flex-col">
+    @* Media container *@
+    <div class="relative overflow-hidden border border-ink/10 bg-fog">
+        <a href="/product/@Product.Id" class="block" tabindex="-1">
+            <ProductImage Product="Product" ColorName="@ActiveColor" HoverSwap="true" />
+        </a>
+
+        @* Badges *@
+        <div class="pointer-events-none absolute left-3 top-3 flex flex-col gap-1.5 z-10">
+            @if (Product.Stock == 0)
+            {
+                <span class="label bg-ink px-2.5 py-1 text-[10px] text-white">Sold out</span>
+            }
+            else if (!string.IsNullOrWhiteSpace(Product.Badge))
+            {
+                <span class="label bg-white px-2.5 py-1 text-[10px] text-ink shadow-sm">@Product.Badge</span>
+            }
         </div>
-        <p class="text-sm font-medium">@Product.PriceText</p>
+
+        @* Quick Size Peek strip visible on desktop hover *@
+        <div class="pointer-events-none absolute inset-x-0 bottom-0 hidden bg-ink/90 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:flex md:items-center md:justify-between">
+            <span class="text-white/60">Sizes</span>
+            <div class="flex gap-1.5">
+                @foreach (var s in Product.Sizes)
+                {
+                    <span>@s</span>
+                }
+            </div>
+        </div>
     </div>
-</a>
+
+    @* Meta & Swatches *@
+    <div class="mt-3.5 flex flex-col flex-1 justify-between gap-2">
+        <div class="flex items-start justify-between gap-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider">
+                <a href="/product/@Product.Id" class="hover:underline underline-offset-4">
+                    @Product.Name
+                </a>
+            </h3>
+            <p class="shrink-0 text-xs font-semibold tabular-nums">@Product.PriceText</p>
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+            <p class="text-[11px] uppercase tracking-widest text-ink/50">
+                @Product.Category
+            </p>
+
+            @* Interactive In-Card Color Swatches (Hover swaps preview image instantly) *@
+            @if (Product.Colors.Length > 1)
+            {
+                <div class="flex items-center gap-1.5" role="group" aria-label="Available colors">
+                    @foreach (var c in Product.Colors)
+                    {
+                        var isCurrent = string.Equals(ActiveColor, c.Name, StringComparison.OrdinalIgnoreCase);
+                        <button type="button"
+                                class="h-3.5 w-3.5 rounded-full border transition-transform hover:scale-125 @(isCurrent ? "border-ink ring-1 ring-ink ring-offset-1" : "border-ink/30")"
+                                style="background-color: @c.Hex"
+                                title="@c.Name"
+                                aria-label="@c.Name"
+                                @onmouseenter="() => previewColor = c.Name"
+                                @onmouseleave="() => previewColor = null"
+                                @onclick="() => previewColor = c.Name">
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter, EditorRequired] public Product Product { get; set; } = default!;
     [Parameter] public string? ColorName { get; set; }
+
+    string? previewColor;
+    string? ActiveColor => previewColor ?? ColorName;
 }
