@@ -1,0 +1,163 @@
+@page "/product/{Id}"
+@inject ProductCatalog Catalog
+@inject CartService Cart
+
+@if (product is null)
+{
+    <PageTitle>Not found | OFFGRID</PageTitle>
+    <section class="bg-cream">
+        <div class="mx-auto flex min-h-[60vh] max-w-[1400px] flex-col items-start justify-center px-5 lg:px-10">
+            <p class="label text-ink/60">404</p>
+            <h1 class="mt-3 text-5xl font-black uppercase tracking-tight">Piece not found.</h1>
+            <p class="mt-4 text-ink/70">That product doesn't exist or has left the collection.</p>
+            <a href="/shop" class="btn btn-dark mt-8">Back to shop</a>
+        </div>
+    </section>
+}
+else
+{
+    <PageTitle>@product.Name | OFFGRID</PageTitle>
+    <section class="bg-cream">
+        <div class="mx-auto max-w-[1400px] px-5 pb-20 pt-8 lg:px-10">
+            <nav aria-label="Breadcrumb">
+                <ol class="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.14em] text-ink/60">
+                    <li><a href="/shop" class="hover:text-ink">Shop</a></li>
+                    <li aria-hidden="true">/</li>
+                    <li><a href="@(ProductCatalog.CategoryUrl(product.Category))" class="hover:text-ink">@product.Category</a></li>
+                    <li aria-hidden="true">/</li>
+                    <li aria-current="page" class="text-ink">@product.Name</li>
+                </ol>
+            </nav>
+
+            <div class="mt-8 grid gap-10 lg:grid-cols-12">
+                <div class="space-y-4 lg:col-span-7">
+                    <div @key="selectedColor" class="animate-fade">
+                        <ProductImage Product="product" ColorName="@selectedColor" />
+                    </div>
+                    @foreach (var img in product.Images.Skip(1))
+                    {
+                        <img src="@img" alt="@product.Name detail view" loading="lazy" class="aspect-[4/5] w-full object-cover" />
+                    }
+                </div>
+
+                <div class="animate-rise self-start lg:sticky lg:top-28 lg:col-span-5">
+                    <p class="label text-ink/60">@product.Category</p>
+                    <h1 class="mt-2 text-4xl font-black uppercase leading-none tracking-tight sm:text-5xl">@product.Name</h1>
+                    <p class="mt-4 text-2xl font-medium">@product.PriceText</p>
+                    <p class="mt-6 max-w-md text-ink/70">@product.Description</p>
+
+                    <div class="mt-8">
+                        <p class="label">Color — <span class="text-ink/60">@selectedColor</span></p>
+                        <div class="mt-3 flex gap-3" role="group" aria-label="Color">
+                            @foreach (var c in product.Colors)
+                            {
+                                var on = selectedColor == c.Name;
+                                <button type="button" aria-label="@c.Name" aria-pressed="@(on ? "true" : "false")" @onclick="() => SelectColor(c.Name)"
+                                        class="@(on ? "ring-2 ring-ink ring-offset-2 ring-offset-cream" : "ring-1 ring-ink/30") h-9 w-9 rounded-full transition"
+                                        style="background-color:@c.Hex"></button>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mt-8">
+                        <p class="label">Size</p>
+                        <div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Size">
+                            @foreach (var s in product.Sizes)
+                            {
+                                var on = selectedSize == s;
+                                <button type="button" aria-pressed="@(on ? "true" : "false")" @onclick="() => SelectSize(s)"
+                                        class="@(on ? "border-ink bg-ink text-white" : "border-ink/30 hover:border-ink") min-w-12 border px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] transition-colors">@s</button>
+                            }
+                        </div>
+                        @if (sizeError)
+                        {
+                            <p role="alert" class="mt-2 text-sm text-red-700">Select a size to continue.</p>
+                        }
+                    </div>
+
+                    <div class="mt-8 flex items-center gap-4">
+                        <div class="inline-flex items-center border border-ink/30">
+                            <button type="button" class="h-12 w-12 text-lg disabled:opacity-30" aria-label="Decrease quantity"
+                                    disabled="@(qty <= 1)" @onclick="() => ChangeQty(-1)">−</button>
+                            <span class="w-10 text-center text-sm" aria-live="polite">@qty</span>
+                            <button type="button" class="h-12 w-12 text-lg disabled:opacity-30" aria-label="Increase quantity"
+                                    disabled="@(qty >= MaxQty)" @onclick="() => ChangeQty(1)">+</button>
+                        </div>
+                        <p class="text-sm @(product.Stock <= 5 ? "font-semibold" : "text-ink/60")">@Availability</p>
+                    </div>
+
+                    <button type="button" class="btn btn-dark mt-6 w-full" disabled="@(product.Stock == 0)" @onclick="AddToBag">
+                        @(product.Stock == 0 ? "Sold out" : "Add to bag")
+                    </button>
+
+                    @if (added)
+                    {
+                        <p role="status" class="animate-fade mt-4 text-sm">
+                            Added to your bag. <a href="/bag" class="underline underline-offset-4">View bag</a>
+                        </p>
+                    }
+
+                    <p class="mt-6 text-xs text-ink/60">
+                        Free shipping on orders over @Money.Peso(CartService.FreeShippingThreshold).
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="border-t border-ink/10 bg-white">
+        <div class="mx-auto max-w-[1400px] px-5 py-20 lg:px-10">
+            <h2 class="text-3xl font-black uppercase tracking-tight">You may also like</h2>
+            <div class="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4 lg:gap-x-6">
+                @foreach (var p in Catalog.Related(product, 4))
+                {
+                    <ProductCard Product="p" @key="p.Id" />
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    Product? product;
+    string? loadedId, selectedColor, selectedSize;
+    int qty = 1;
+    bool sizeError, added;
+
+    int MaxQty => Math.Max(1, Math.Min(product?.Stock ?? 1, 10));
+
+    string Availability => product!.Stock switch
+    {
+        0 => "Sold out",
+        <= 5 => $"Only {product.Stock} left",
+        _ => "In stock"
+    };
+
+    protected override void OnParametersSet()
+    {
+        if (Id == loadedId) return;
+        loadedId = Id;
+        product = Catalog.GetById(Id);
+        selectedColor = product?.Colors.FirstOrDefault()?.Name;
+        selectedSize = product is { Sizes.Length: 1 } ? product.Sizes[0] : null;
+        qty = 1;
+        sizeError = false;
+        added = false;
+    }
+
+    void SelectColor(string name) { selectedColor = name; added = false; }
+
+    void SelectSize(string s) { selectedSize = s; sizeError = false; added = false; }
+
+    void ChangeQty(int delta) { qty = Math.Clamp(qty + delta, 1, MaxQty); added = false; }
+
+    void AddToBag()
+    {
+        if (product is null || product.Stock == 0) return;
+        if (selectedSize is null) { sizeError = true; return; }
+        Cart.Add(product, selectedSize, selectedColor ?? "", qty);
+        added = true;
+    }
+}
