@@ -37,7 +37,7 @@
         </div>
 
         <div class="hero-media relative min-h-[420px] border-t border-white/10 bg-concrete lg:col-span-5 lg:border-l lg:border-t-0">
-            @if (HeroImage is not null)
+            @if (!string.IsNullOrEmpty(HeroImage))
             {
                 <img src="@HeroImage" alt="OFFGRID campaign hero" class="absolute inset-0 h-full w-full object-cover grayscale contrast-125" />
                 <div class="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-transparent lg:hidden"></div>
@@ -206,7 +206,7 @@
 </section>
 
 @code {
-    const string? HeroImage = "/images/hero/hero.jpg";
+    const string HeroImage = "/images/hero/hero.jpg";
 
     readonly NewsletterModel newsletter = new();
     bool subscribed;

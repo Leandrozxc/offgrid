@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build": "tailwindcss -i ./Styles/app.css -o ./wwwroot/css/app.css",
     "build:css": "tailwindcss -i ./Styles/app.css -o ./wwwroot/css/app.css",
+    "watch": "tailwindcss -i ./Styles/app.css -o ./wwwroot/css/app.css --watch",
     "watch:css": "tailwindcss -i ./Styles/app.css -o ./wwwroot/css/app.css --watch"
   },
   "devDependencies": {

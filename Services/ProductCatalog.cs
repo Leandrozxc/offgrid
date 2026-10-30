@@ -88,7 +88,7 @@ public class ProductCatalog
         {
             Id = id, Name = name, Category = category, Price = price, Description = description,
             Sizes = sizes, Colors = colors, Badge = badge, Released = released, Stock = stock,
-            Images = found.Take(1).Select(x => x.Path!).ToArray(),
+            Images = found.Select(x => x.Path!).ToArray(),
             ColorImages = found.ToDictionary(x => x.Name, x => x.Path!)
         };
     }

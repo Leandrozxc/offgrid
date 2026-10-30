@@ -41,7 +41,7 @@
         }
 
         @* Hover Carousel Arrows (visible when multi-image exists) *@
-        @if (Product.Images.Length > 1)
+        @if (Product.Images.Length > 1 || Product.Colors.Length > 1)
         {
             <button type="button"
                     class="absolute left-1.5 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-1.5 text-ink opacity-0 transition-opacity hover:bg-white group-hover:opacity-100"
@@ -190,19 +190,7 @@
         imageIndex = 0;
     }
 
-    void NextImage()
-    {
-        if (Product.Images.Length > 1)
-        {
-            imageIndex = (imageIndex + 1) % Product.Images.Length;
-        }
-    }
+    void NextImage() { if (Product.Colors.Length > 1) { var idx = Array.FindIndex(Product.Colors, c => string.Equals(c.Name, ActiveColor, StringComparison.OrdinalIgnoreCase)); SelectColor(Product.Colors[(idx + 1) % Product.Colors.Length].Name); } else if (Product.Images.Length > 1) { imageIndex = (imageIndex + 1) % Product.Images.Length; } }
 
-    void PreviousImage()
-    {
-        if (Product.Images.Length > 1)
-        {
-            imageIndex = (imageIndex - 1 + Product.Images.Length) % Product.Images.Length;
-        }
-    }
+    void PreviousImage() { if (Product.Colors.Length > 1) { var idx = Array.FindIndex(Product.Colors, c => string.Equals(c.Name, ActiveColor, StringComparison.OrdinalIgnoreCase)); SelectColor(Product.Colors[(idx - 1 + Product.Colors.Length) % Product.Colors.Length].Name); } else if (Product.Images.Length > 1) { imageIndex = (imageIndex - 1 + Product.Images.Length) % Product.Images.Length; } }
 }
