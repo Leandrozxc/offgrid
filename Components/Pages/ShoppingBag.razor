@@ -40,7 +40,7 @@
                                                 aria-label="Decrease quantity of @item.Product.Name"
                                                 disabled="@(item.Quantity <= 1)"
                                                 @onclick="() => Cart.SetQuantity(item, item.Quantity - 1)">−</button>
-                                        <span class="w-10 text-center text-sm" aria-live="polite">@item.Quantity</span>
+                                        <span class="w-10 overflow-hidden text-center text-sm" aria-live="polite"><span @key="item.Quantity" class="tick">@item.Quantity</span></span>
                                         <button type="button" class="h-10 w-10 text-lg disabled:opacity-30"
                                                 aria-label="Increase quantity of @item.Product.Name"
                                                 disabled="@(item.Quantity >= item.Product.Stock)"

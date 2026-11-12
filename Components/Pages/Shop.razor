@@ -1,5 +1,6 @@
 @page "/shop"
 @inject ProductCatalog Catalog
+@inject NavigationManager Nav
 
 <PageTitle>Shop | OFFGRID</PageTitle>
 
@@ -191,7 +192,7 @@
                 }
                 else
                 {
-                    <div @key="GridKey" class="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3">
+                    <div @key="GridKey" class="stagger grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3">
                         @foreach (var p in results)
                         {
                             <ProductCard Product="p" ColorName="@color" @key="p.Id" />
@@ -207,9 +208,9 @@
 @if (drawerOpen)
 {
     <div class="fixed inset-0 z-50 flex lg:hidden" role="dialog" aria-modal="true">
-        <div class="fixed inset-0 bg-ink/60 backdrop-blur-sm" @onclick="() => drawerOpen = false"></div>
+        <div class="drawer-backdrop fixed inset-0 bg-ink/60 backdrop-blur-sm" @onclick="() => drawerOpen = false"></div>
 
-        <div class="relative ml-auto flex h-full w-full max-w-xs flex-col bg-cream shadow-2xl">
+        <div class="drawer-panel relative ml-auto flex h-full w-full max-w-xs flex-col bg-cream shadow-2xl">
             <div class="flex items-center justify-between border-b border-ink/15 p-5">
                 <span class="label text-ink">Filters</span>
                 <button type="button" class="text-lg font-black" @onclick="() => drawerOpen = false">×</button>
@@ -280,10 +281,14 @@
     [SupplyParameterFromQuery(Name = "q")] public string? SearchQuery { get; set; }
     [SupplyParameterFromQuery(Name = "filter")] public string? FilterQuery { get; set; }
 
-    string? category, size, color, search, appliedKey;
-    string sort = "featured";
-    bool onlyNew;
-    bool drawerOpen;
+    string? _category, _search, size, color, appliedKey;
+    string _sort = "featured";
+    bool _onlyNew, drawerOpen;
+
+    string? category { get => _category; set { _category = value; SyncUrl(); } }
+    string? search { get => _search; set { _search = value; SyncUrl(); } }
+    string sort { get => _sort; set { _sort = value; SyncUrl(); } }
+    bool onlyNew { get => _onlyNew; set { _onlyNew = value; SyncUrl(); } }
 
     bool HasFilters => onlyNew || category is not null || size is not null || color is not null || !string.IsNullOrWhiteSpace(search);
     int ActiveFilterCount => (onlyNew ? 1 : 0) + (category is not null ? 1 : 0) + (size is not null ? 1 : 0) + (color is not null ? 1 : 0) + (!string.IsNullOrWhiteSpace(search) ? 1 : 0);
@@ -301,21 +306,40 @@
         if (key == appliedKey) return;
         appliedKey = key;
 
-        category = CategoryQuery is not null && ProductCatalog.Categories.Contains(CategoryQuery) ? CategoryQuery : null;
-        sort = SortQuery is "new" or "price-asc" or "price-desc" ? SortQuery : "featured";
-        search = string.IsNullOrWhiteSpace(SearchQuery) ? null : SearchQuery.Trim();
-        onlyNew = string.Equals(FilterQuery, "new", StringComparison.OrdinalIgnoreCase);
+        _category = CategoryQuery is not null && ProductCatalog.Categories.Contains(CategoryQuery) ? CategoryQuery : null;
+        _sort = SortQuery is "new" or "price-asc" or "price-desc" ? SortQuery : "featured";
+        _search = string.IsNullOrWhiteSpace(SearchQuery) ? null : SearchQuery.Trim();
+        _onlyNew = string.Equals(FilterQuery, "new", StringComparison.OrdinalIgnoreCase);
         size = null;
         color = null;
     }
 
+    void SyncUrl()
+    {
+        var catParam = _category;
+        var sortParam = _sort == "featured" ? null : _sort;
+        var qParam = string.IsNullOrWhiteSpace(_search) ? null : _search.Trim();
+        var filterParam = _onlyNew ? "new" : null;
+
+        appliedKey = $"{catParam}|{sortParam}|{qParam}|{filterParam}";
+        var uri = Nav.GetUriWithQueryParameters(new Dictionary<string, object?>
+        {
+            ["category"] = catParam,
+            ["sort"] = sortParam,
+            ["q"] = qParam,
+            ["filter"] = filterParam
+        });
+        Nav.NavigateTo(uri, replace: true);
+    }
+
     void ClearFilters()
     {
-        category = null;
+        _category = null;
         size = null;
         color = null;
-        search = null;
-        onlyNew = false;
+        _search = null;
+        _onlyNew = false;
+        SyncUrl();
     }
 
     IEnumerable<Product> Filtered()

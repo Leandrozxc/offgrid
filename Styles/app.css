@@ -93,13 +93,20 @@
     transform: scaleX(1);
 }
 
+/* =========================================================
+   MOTION
+   One authored moment (hero lockup + image wipe), quiet
+   supporting states everywhere else.
+   Ease: expo-out for arrivals, faster ease-in for exits.
+   ========================================================= */
+
 /* Streetwear marquee ticker */
 @keyframes ticker {
-    0% {
+    from {
         transform: translateX(0);
     }
 
-    100% {
+    to {
         transform: translateX(-50%);
     }
 }
@@ -110,15 +117,15 @@
     animation: ticker 25s linear infinite;
 }
 
-.animate-ticker:hover {
+.animate-ticker:hover,
+.animate-ticker.is-offscreen {
     animation-play-state: paused;
 }
 
-/* Motion */
 @keyframes rise {
     from {
         opacity: 0;
-        transform: translateY(18px);
+        transform: translateY(14px);
     }
 
     to {
@@ -137,6 +144,20 @@
     }
 }
 
+/* --- Focal moment: hero lockup ---------------------------
+   Each headline line slides up from behind its own baseline
+   mask, like type being set. The campaign image wipes open
+   from the top while settling out of a slight push-in. */
+@keyframes mask-in {
+    from {
+        transform: translateY(105%);
+    }
+
+    to {
+        transform: none;
+    }
+}
+
 @keyframes clip-in {
     from {
         clip-path: inset(0 0 100% 0);
@@ -147,13 +168,141 @@
     }
 }
 
+@keyframes settle {
+    from {
+        transform: scale(1.12);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.mask-line {
+    display: block;
+    /* clip top/bottom only so wide display lines never lose glyphs sideways */
+    clip-path: inset(0 -100vw);
+    /* room for the cap height at leading-[0.85] */
+    padding-bottom: .06em;
+    margin-bottom: -.06em;
+}
+
+.mask-in {
+    display: block;
+    animation: mask-in .9s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.hero-media {
+    animation: clip-in 1.1s cubic-bezier(.7, 0, .2, 1) both;
+}
+
+.hero-media img {
+    animation: settle 1.6s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+/* --- Supporting entrances -------------------------------- */
+.animate-rise {
+    animation: rise .7s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.animate-fade {
+    animation: fade .3s ease-out both;
+}
+
+.delay-1 {
+    animation-delay: .12s;
+}
+
+.delay-2 {
+    animation-delay: .24s;
+}
+
+.delay-3 {
+    animation-delay: .36s;
+}
+
+.delay-4 {
+    animation-delay: .6s;
+}
+
+/* Product list re-flows as a list when filters change.
+   Stagger capped at 8 items (~280ms total). */
+.stagger > * {
+    animation: rise .45s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.stagger > :nth-child(2) { animation-delay: 40ms; }
+.stagger > :nth-child(3) { animation-delay: 80ms; }
+.stagger > :nth-child(4) { animation-delay: 120ms; }
+.stagger > :nth-child(5) { animation-delay: 160ms; }
+.stagger > :nth-child(6) { animation-delay: 200ms; }
+.stagger > :nth-child(7) { animation-delay: 240ms; }
+.stagger > :nth-child(n + 8) { animation-delay: 280ms; }
+
+/* Colorway swap: new photo fades over the fog backdrop */
+@keyframes swap {
+    from {
+        opacity: 0;
+        transform: scale(1.02);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.animate-swap {
+    /* backwards fill so the hover zoom owns transform once it lands */
+    animation: swap .35s cubic-bezier(.16, 1, .3, 1) backwards;
+}
+
+/* Search panel drops open from the header edge */
+@keyframes drop {
+    from {
+        opacity: 0;
+        clip-path: inset(0 0 100% 0);
+    }
+
+    to {
+        opacity: 1;
+        clip-path: inset(0);
+    }
+}
+
+.animate-drop {
+    animation: drop .25s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+/* Mobile filter drawer */
+@keyframes slide-in-right {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: none;
+    }
+}
+
+.drawer-backdrop {
+    animation: fade .25s ease-out both;
+}
+
+.drawer-panel {
+    animation: slide-in-right .4s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+/* --- Feedback -------------------------------------------- */
+
+/* Bag counter: quick pop when an item lands */
 @keyframes bump {
     0% {
         transform: scale(1);
     }
 
-    40% {
-        transform: scale(1.35);
+    35% {
+        transform: scale(1.3);
     }
 
     100% {
@@ -161,6 +310,30 @@
     }
 }
 
+.bag-bump {
+    animation: bump .4s cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Quantity numerals roll in when they change */
+@keyframes tick {
+    from {
+        opacity: 0;
+        transform: translateY(60%);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.tick {
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+    animation: tick .2s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+/* Bag line removal: exits faster than anything enters */
 @keyframes leave {
     to {
         opacity: 0;
@@ -168,43 +341,16 @@
     }
 }
 
-.animate-rise {
-    animation: rise .8s cubic-bezier(.2, .7, .2, 1) both;
-}
-
-.animate-fade {
-    animation: fade .4s ease both;
-}
-
-.hero-media {
-    animation: clip-in 1.1s cubic-bezier(.7, 0, .2, 1) both;
-}
-
-.bag-bump {
-    animation: bump .35s ease;
-}
-
 .line-leave {
-    animation: leave .25s ease forwards;
+    animation: leave .22s cubic-bezier(.7, 0, .84, 0) forwards;
 }
 
-.delay-1 {
-    animation-delay: .1s;
-}
-
-.delay-2 {
-    animation-delay: .22s;
-}
-
-.delay-3 {
-    animation-delay: .36s;
-}
-
-/* Scroll reveal */
+/* Scroll reveal: kept quiet so it never competes with the hero.
+   Content is visible unless JS is confirmed (class set in App.razor). */
 .js .reveal {
     opacity: 0;
-    transform: translateY(24px);
-    transition: opacity .8s cubic-bezier(.2, .7, .2, 1), transform .8s cubic-bezier(.2, .7, .2, 1);
+    transform: translateY(12px);
+    transition: opacity .7s cubic-bezier(.16, 1, .3, 1), transform .7s cubic-bezier(.16, 1, .3, 1);
 }
 
 .js .reveal.is-visible {
@@ -212,22 +358,45 @@
     transform: none;
 }
 
+/* --- Reduced motion ---------------------------------------
+   Remove spatial movement; keep opacity so state changes and
+   confirmations stay legible. */
 @media (prefers-reduced-motion: reduce) {
-
-    *,
-    ::before,
-    ::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
-    }
-
     .animate-ticker {
         animation: none;
     }
 
+    .hero-media,
+    .hero-media img,
+    .mask-in {
+        animation: none;
+    }
+
+    .animate-rise,
+    .stagger > *,
+    .animate-swap,
+    .animate-drop,
+    .drawer-panel,
+    .tick {
+        animation-name: fade;
+        animation-duration: .2s;
+    }
+
+    .stagger > * {
+        animation-delay: 0s !important;
+    }
+
+    .bag-bump {
+        animation: fade .2s ease-out;
+    }
+
+    .line-leave {
+        animation: none;
+        opacity: .3;
+    }
+
     .js .reveal {
-        opacity: 1;
         transform: none;
+        transition: opacity .4s ease-out;
     }
 }

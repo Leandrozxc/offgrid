@@ -5,9 +5,10 @@
             @if (!string.IsNullOrEmpty(CurrentImage))
             {
                 <img src="@CurrentImage"
+                     @key="CurrentImage"
                      alt="@Product.Name"
                      loading="lazy"
-                     class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+                     class="animate-swap h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" />
             }
             else
             {
@@ -69,7 +70,7 @@
                 {
                     var isSelected = string.Equals(ActiveColor, c.Name, StringComparison.OrdinalIgnoreCase);
                     <button type="button"
-                            class="h-4 w-4 rounded-full border transition-transform @(isSelected ? "border-ink ring-1 ring-ink ring-offset-1 scale-110" : "border-ink/20 hover:scale-110")"
+                            class="h-4 w-4 rounded-full border transition-transform @(isSelected ? "border-ink ring-1 ring-ink ring-offset-1 scale-110" : "border-ink/20 motion-safe:hover:scale-110")"
                             style="background-color: @c.Hex"
                             title="@c.Name"
                             aria-label="@c.Name"
@@ -146,7 +147,8 @@
     [Parameter, EditorRequired] public Product Product { get; set; } = default!;
     [Parameter] public string? ColorName { get; set; }
 
-    string? selectedColor;
+    string? selectedColor, lastColorParam;
+    protected override void OnParametersSet() { if (ColorName != lastColorParam) { lastColorParam = ColorName; selectedColor = ColorName; } }
     int imageIndex = 0;
     bool isFavorite;
 
@@ -194,3 +196,4 @@
 
     void PreviousImage() { if (Product.Colors.Length > 1) { var idx = Array.FindIndex(Product.Colors, c => string.Equals(c.Name, ActiveColor, StringComparison.OrdinalIgnoreCase)); SelectColor(Product.Colors[(idx - 1 + Product.Colors.Length) % Product.Colors.Length].Name); } else if (Product.Images.Length > 1) { imageIndex = (imageIndex - 1 + Product.Images.Length) % Product.Images.Length; } }
 }
+

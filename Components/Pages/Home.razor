@@ -2,6 +2,7 @@
 @using System.ComponentModel.DataAnnotations
 @inject ProductCatalog Catalog
 @inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <PageTitle>OFFGRID | Outside the Ordinary.</PageTitle>
 
@@ -16,14 +17,14 @@
 
             <div class="my-auto py-12">
                 <h1 class="text-[clamp(3.5rem,10.5vw,9rem)] font-black uppercase leading-[0.85] tracking-tighter">
-                    <span class="block animate-rise">Outside</span>
-                    <span class="block animate-rise delay-1">the</span>
-                    <span class="block animate-rise delay-2">ordinary.</span>
+                    <span class="mask-line"><span class="mask-in">Outside</span></span>
+                    <span class="mask-line"><span class="mask-in delay-1">the</span></span>
+                    <span class="mask-line"><span class="mask-in delay-2">ordinary.</span></span>
                 </h1>
-                <p class="animate-rise mt-8 max-w-md text-sm uppercase tracking-widest text-white/70 delay-3 sm:text-base">
+                <p class="animate-rise mt-8 max-w-md text-sm uppercase tracking-widest text-white/70 delay-4 sm:text-base">
                     Heavyweight silhouettes. Zero trend-chasing. Uncompromising everyday streetwear.
                 </p>
-                <div class="animate-rise mt-10 flex flex-wrap gap-4 delay-3">
+                <div class="animate-rise mt-10 flex flex-wrap gap-4 delay-4">
                     <a href="/shop" class="btn btn-light">Shop the collection</a>
                     <button type="button" class="btn btn-outline-light" @onclick='() => JS.InvokeVoidAsync("offgrid.scrollToId", "story")'>Discover OFFGRID</button>
                 </div>
@@ -54,7 +55,7 @@
 
 @* STREETWEAR TICKER MARQUEE *@
 <div class="overflow-hidden border-b border-ink bg-ink py-2.5 text-white" aria-hidden="true">
-    <div class="animate-ticker text-xs font-bold uppercase tracking-[0.25em]">
+    <div @ref="ticker" class="animate-ticker text-xs font-bold uppercase tracking-[0.25em]">
         <span class="mx-6">Drop 04 Live</span> •
         <span class="mx-6">Free Nationwide Shipping Over ₱2,500</span> •
         <span class="mx-6">Heavyweight Fleece & Graphic Tees</span> •
@@ -207,6 +208,24 @@
 
 @code {
     const string HeroImage = "/images/hero/hero.jpg";
+
+    ElementReference ticker;
+    bool tickerObserved;
+
+    // Pause the marquee loop while it is off screen.
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await JS.InvokeVoidAsync("offgrid.loop", ticker);
+        tickerObserved = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!tickerObserved) return;
+        try { await JS.InvokeVoidAsync("offgrid.unloop", ticker); }
+        catch (JSDisconnectedException) { }
+    }
 
     readonly NewsletterModel newsletter = new();
     bool subscribed;

@@ -79,7 +79,7 @@ else
                         <div class="inline-flex items-center border border-ink/30">
                             <button type="button" class="h-12 w-12 text-lg disabled:opacity-30" aria-label="Decrease quantity"
                                     disabled="@(qty <= 1)" @onclick="() => ChangeQty(-1)">−</button>
-                            <span class="w-10 text-center text-sm" aria-live="polite">@qty</span>
+                            <span class="w-10 overflow-hidden text-center text-sm" aria-live="polite"><span @key="qty" class="tick">@qty</span></span>
                             <button type="button" class="h-12 w-12 text-lg disabled:opacity-30" aria-label="Increase quantity"
                                     disabled="@(qty >= MaxQty)" @onclick="() => ChangeQty(1)">+</button>
                         </div>

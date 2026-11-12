@@ -50,7 +50,7 @@
 
     @if (searchOpen)
     {
-        <div class="animate-fade border-t border-ink/10 bg-cream">
+        <div class="animate-drop border-t border-ink/10 bg-cream">
             <form @onsubmit="SubmitSearch" @onsubmit:preventDefault class="mx-auto flex max-w-[1400px] items-center gap-4 px-5 py-4 lg:px-10">
                 <label for="site-search" class="sr-only">Search products</label>
                 <input id="site-search" @ref="searchInput" @bind="term" @bind:event="oninput" @onkeydown="OnSearchKey"
